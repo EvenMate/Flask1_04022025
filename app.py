@@ -1,11 +1,13 @@
 from flask import Flask
 
 app = Flask(__name__)
+app.config['JSON_AS_ASCII'] = False
 about_me = {
-    "name": "Евгений",
-    "surname": "Юрченко",
-    "email": "eyurchenko@specialist.ru"
-    }
+    "name": "Evgeny",
+    "surname": "Kurskikh",
+    "email": "epersic@mail.ru"
+
+}
 @app.route("/")
 def hello_world():
     return "Hello, World!"
