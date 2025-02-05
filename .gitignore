@@ -7,3 +7,4 @@ flask-venv/
 *.sqlite
 *.sqlite3
 *.tmp
+collection
