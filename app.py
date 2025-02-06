@@ -4,10 +4,30 @@ import random as rd
 from flask import request
 
 app = Flask(__name__)
-app.config['JSON_AS_ASCII'] = False
+app.json.ensure_ascii = False
 
-all_quotes = [{"id": 0, "author": "evgeny", "quote": "нулевая цитата"}, {"id": 1, "author": "evgeny", "quote": "первая цитата"}, {"id": 2, "author": "evgeny", "quote": "вторая цитата"}, {"id": 3, "author": "evgeny", "quote": "третья цитата"}]
-
+quotes = [
+    {
+        "id": 1,
+        "author": "Rick Cook",
+        "text": "Программирование сегодня — это гонка разработчиков программ, стремящихся писать программы с большей и лучшей идиотоустойчивостью, и вселенной, которая пытается создать больше отборных идиотов. Пока вселенная побеждает."
+    },
+    {
+        "id": 2,
+        "author": "Waldi Ravens",
+        "text": "Программирование на С похоже на быстрые танцы на только что отполированном полу людей с острыми бритвами в руках."
+    },
+    {
+        "id": 3,
+        "author": "Mosher’s Law of Software Engineering",
+        "text": "Не волнуйтесь, если что-то не работает. Если бы всё работало, вас бы уволили."
+    },
+    {
+        "id": 4,
+        "author": "Yoggi Berra",
+        "text": "В теории, теория и практика неразделимы. На практике это не так."
+    }
+]
 
 about_me = {
     "name": "Евгений",
@@ -25,49 +45,61 @@ def about():
 
 @app.route("/quotes") 
 def get_all_quotes():
-    return all_quotes
+    return quotes
 
 @app.route("/quotes/<int:id>") ## Задание 1 и 2 из Практика - часть 1
 def get_quotes(id):
-    if id >=0 and id <= len(all_quotes)-1:
-        return all_quotes[id]
-    else:
-        return {"404": f'цитаты c id {id} нет('}
+    for quote in quotes:
+        if quote["id"] == id:
+            return quote
+    return {"404": f"Цитата {id} не найдена"}    
 
 @app.route("/quotes/count") ## Задание 3 из Практика - часть 1
 def get_quotes_count():
-    return {"count": str(len(all_quotes))}
+    return {"count": str(len(quotes))}
 
 @app.route("/quotes/random") ## Задание 4 из Практика - часть 1
 def get_random_quote():
-    return all_quotes[rd.randint(0, len(all_quotes)-1)]
+    return rd.choice(quotes)
 
-@app.route("/quotes", methods=['POST']) # для Практики части 2 
+# @app.route("/quotes", methods=['POST']) # решение с урока
+# def create_quote():
+#    new_quote = request.json
+#    last_quote = quotes[-1]  
+#    new_id = last_quote["id"] + 1
+#    new_quote["id"] = new_id
+#    quotes.append(new_quote) 
+#    return new_quote, 201
+
+def generate_new_id(): # генерация id
+    return max(quote["id"] for quote in quotes) + 1 # выбираем максимальное значение из всех id-шников и делаем +1
+
+@app.route("/quotes", methods=['POST']) 
 def create_quote():
-   data = request.json
-   print("data = ", data)
-   all_quotes.append({"id": len(all_quotes), "author":data["author"], "quote":data["text"]}) 
-   return data, 201
+   new_quote = request.json
+   new_quote["id"] = generate_new_id()
+   quotes.append(new_quote) 
+   return new_quote, 201
 
 @app.route("/quotes/<int:id>", methods=['PUT']) ## работает если в PUT application/json поля также называются
 def edit_quote(id):
-    if id >=0 and id <= len(all_quotes)-1:
-        new_data = request.json
-        all_quotes[id].update(new_data)
-        return all_quotes[id], 200
-    else:
-        return {"404": "нет такой цитаты"}, 404
+    new_data = request.json
+    for quote in quotes:
+        if quote["id"] == id:
+            if "author" in new_data:
+                quote["author"] = new_data["author"]
+            if "text" in new_data:
+                quote["text"] = new_data["text"]
+            return quote, 201
+    return {"404": f"Цитата {id} не найдена"}   
     
 @app.route("/quotes/<int:id>", methods=['DELETE'])
 def delete(id):
-    global all_quotes
-    item_to_delete = next((item for item in all_quotes if item.get("id") == id), None)
-
-    if item_to_delete is None:
-        return {"error": f"Цитата с ID {id} не найдена"}, 404
-
-    all_quotes = [item for item in all_quotes if item.get("id") != id]
-    return {"200": f"удалена цитата {id}"}, 200
+    for quote in quotes:
+        if quote["id"] == id:
+            quotes.remove(quote)
+            return quote, 200
+    return {"404": f"Цитата {id} не найдена"} 
 
 if __name__ == "__main__":
     app.run(debug=True)
