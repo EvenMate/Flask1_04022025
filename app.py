@@ -1,51 +1,54 @@
-from flask import Flask
+from flask import Flask, jsonify
 import random as rd
-
+from pathlib import Path
 from flask import request
-
+import sqlite3
 app = Flask(__name__)
 app.json.ensure_ascii = False
 
-quotes = [
-    {
-        "id": 1,
-        "author": "Rick Cook",
-        "text": "Программирование сегодня — это гонка разработчиков программ, стремящихся писать программы с большей и лучшей идиотоустойчивостью, и вселенной, которая пытается создать больше отборных идиотов. Пока вселенная побеждает."
-    },
-    {
-        "id": 2,
-        "author": "Waldi Ravens",
-        "text": "Программирование на С похоже на быстрые танцы на только что отполированном полу людей с острыми бритвами в руках."
-    },
-    {
-        "id": 3,
-        "author": "Mosher’s Law of Software Engineering",
-        "text": "Не волнуйтесь, если что-то не работает. Если бы всё работало, вас бы уволили."
-    },
-    {
-        "id": 4,
-        "author": "Yoggi Berra",
-        "text": "В теории, теория и практика неразделимы. На практике это не так."
-    }
-]
+BASE_DIR = Path(__file__).parent
+path_to_db = BASE_DIR / "store.db"  
 
-about_me = {
-    "name": "Евгений",
-    "surname": "Курских",
-    "email": "epersic@mail.ru"
-}
-
-@app.route("/")
-def hello_world():
-    return "Hello, World!"
-
-@app.route("/about")
-def about():
-    return about_me
+# quotes = [
+#     {
+#         "id": 1,
+#         "author": "Rick Cook",
+#         "text": "Программирование сегодня — это гонка разработчиков программ, стремящихся писать программы с большей и лучшей идиотоустойчивостью, и вселенной, которая пытается создать больше отборных идиотов. Пока вселенная побеждает."
+#     },
+#     {
+#         "id": 2,
+#         "author": "Waldi Ravens",
+#         "text": "Программирование на С похоже на быстрые танцы на только что отполированном полу людей с острыми бритвами в руках."
+#     },
+#     {
+#         "id": 3,
+#         "author": "Mosher’s Law of Software Engineering",
+#         "text": "Не волнуйтесь, если что-то не работает. Если бы всё работало, вас бы уволили."
+#     },
+#     {
+#         "id": 4,
+#         "author": "Yoggi Berra",
+#         "text": "В теории, теория и практика неразделимы. На практике это не так."
+#     }
+# ]
 
 @app.route("/quotes") 
 def get_all_quotes():
-    return quotes
+    quotes = []
+    select_quotes = "SELECT * from quotes"
+    connection = sqlite3.connect("store.db")
+    cursor = connection.cursor()
+    cursor.execute(select_quotes)
+    quotes_db = cursor.fetchall() # имеет тип данных список кортежей, list[tuple]
+    print(f"{quotes=}")
+    cursor.close()
+    connection.close()
+    keys = ("id","author","text")
+    #выполняем преобразование типа список кортежей на список словарей
+    for quote_db in quotes_db:
+        quote = dict(zip(keys, quote_db))
+        quotes.append(quote)
+    return jsonify(quotes), 200
 
 @app.route("/quotes/<int:id>") ## Задание 1 и 2 из Практика - часть 1
 def get_quotes(id):
