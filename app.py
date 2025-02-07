@@ -81,7 +81,7 @@ def create_quote():
    quotes.append(new_quote) 
    return new_quote, 201
 
-@app.route("/quotes/<int:id>", methods=['PUT']) ## работает если в PUT application/json поля также называются
+@app.route("/quotes/<int:id>", methods=['PUT']) 
 def edit_quote(id):
     new_data = request.json
     for quote in quotes:
