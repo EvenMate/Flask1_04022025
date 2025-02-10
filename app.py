@@ -146,19 +146,19 @@ def delete_quote(quote_id):
     
     return jsonify({"message": f"Цитата {quote_id} удалена"}), 200
 
-@app.route("/quotes/filter")
-def filter_quotes():
-    try:
-        quotes = db.session.scalars(QuoteModel).filter_by(**request.args).all()
-    except InvalidRequestError:
-        return (
-            (
-                "Invalid data. Possible values: author, data, rating"
-                f"Recieved: {", ".join(request.args.keys())}"
-            ),
-            400,
-        )
-    return jsonify([quote.to_dict() for quote in quotes], 200)
+# @app.route("/quotes/filter")
+# def filter_quotes():
+#     try:
+#         quotes = db.session.scalars(QuoteModel).filter_by(**request.args).all()
+#     except InvalidRequestError:
+#         return (
+#             (
+#                 "Invalid data. Possible values: author, data, rating"
+#                 f"Recieved: {", ".join(request.args.keys())}"
+#             ),
+#             400,
+#         )
+#     return jsonify([quote.to_dict() for quote in quotes], 200)
 
 if __name__ == "__main__":
     app.run(debug=True)
